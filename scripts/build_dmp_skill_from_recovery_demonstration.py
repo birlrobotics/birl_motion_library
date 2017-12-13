@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import build_skill_util
 from birl_baxter_dmp.dmp_train import train
 from birl_baxter_dmp.dmp_generalize import dmp_imitate
@@ -5,6 +7,7 @@ import re
 import logging
 import os
 import pandas as pd
+from birl_skill_management.interface import store_skill, extract_skill
 
 logging.basicConfig(level=logging.INFO)
 
@@ -59,8 +62,7 @@ if __name__ == "__main__":
             "control_dimensions": list_of_interested_column_name 
         }
 
-        logging.info(skill_data)
-        
+        store_skill(skill_data['id'], skill_data) 
 
 
 
