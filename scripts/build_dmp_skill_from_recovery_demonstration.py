@@ -63,7 +63,4 @@ if __name__ == "__main__":
         }
 
         store_skill(skill_data['id'], skill_data) 
-
-
-
-
+        extract_skill(skill_data['id'])

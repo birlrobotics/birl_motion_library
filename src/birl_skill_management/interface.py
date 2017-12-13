@@ -1,8 +1,17 @@
-from core import PickleStorer, PickleExtracter
+from core import PickleSkillManager, SkillNotFound
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def store_skill(data_id, data):
-    PickleStorer(data_id, data)
+    psm = PickleSkillManager()
+    psm.store(data_id, data)
 
 def extract_skill(data_id):
-    data = PickleExtracter(data_id)
-    return data
+    psm = PickleSkillManager()
+    try:
+        data = psm.extract(data_id)
+    except SkillNotFound as e:
+        return None
+    else:
+        return data
