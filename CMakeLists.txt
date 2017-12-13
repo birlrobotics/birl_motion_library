@@ -7,7 +7,7 @@ project(birl_motion_library)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  stdmsg
+  std_msgs
   birl_baxter_dmp
 )
 
@@ -103,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES birl_motion_library
-#  CATKIN_DEPENDS roscpp rospy stdmsg
+#  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
 
