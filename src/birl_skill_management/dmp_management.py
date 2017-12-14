@@ -103,6 +103,13 @@ def execute_skill(skill_id):
     start = cook_array_from_object_using_postfixs(list_of_postfix, raw_start)
     end = cook_array_from_object_using_postfixs(list_of_postfix, raw_end)
 
+    logger.info("start: %s"%(start,))
+    logger.info("end: %s"%(end,))
+
+    gen_matrix = dmp_imitate(starting_pose=start, ending_pose=end, weight_mat=skill_data["skill_param"]["basis_weight"])
+
+    logger.info("gen matrix: %s"%(gen_matrix,))
+
     return True
 
 
