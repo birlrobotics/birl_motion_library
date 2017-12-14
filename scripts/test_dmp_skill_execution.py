@@ -24,3 +24,5 @@ if __name__ == "__main__":
         sys.exit(1)    
 
     fill_in_runtime_param(skill_data)
+
+    print skill_data
