@@ -7,8 +7,10 @@ import pandas as pd
 from birl_skill_management.interface import store_skill, extract_skill
 from skill_building_util import get_list_of_interested_column_name
 from birl_runtime_parameter_filler.interface import fill_in_runtime_param
+import sys
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("birl_motion_library."+__name__)
+logger.setLevel(logging.INFO)
 
 def build_skill(dataset_path, control_mode, skill_id_prefix):
     traj_group_by_label = {}
@@ -20,13 +22,13 @@ def build_skill(dataset_path, control_mode, skill_id_prefix):
     for f in files:
         m = prog.match(f)
         if not m:
-            logging.warning('bad filename \"%s\" found in \"%s\"', f, dataset_path)
+            logger.warning('bad filename \"%s\" found in \"%s\"', f, dataset_path)
             continue
         else:
             label = m.group(1)
             if label not in traj_group_by_label:
                 traj_group_by_label[label] = []
-            logging.info("label=%s for file \"%s\"", label, f)  
+            logger.info("label=%s for file \"%s\"", label, f)  
             count += 1
 
         df = pd.read_csv(os.path.join(dataset_path, f), sep=',')  
@@ -34,7 +36,7 @@ def build_skill(dataset_path, control_mode, skill_id_prefix):
             list_of_interested_column_name = get_list_of_interested_column_name(
                 df.columns, control_mode
             ) 
-            logging.info("list_of_interested_column_name: %s", list_of_interested_column_name)
+            logger.info("list_of_interested_column_name: %s", list_of_interested_column_name)
 
         traj_group_by_label[label].append(df[list_of_interested_column_name].values)
 
@@ -63,10 +65,44 @@ def build_skill(dataset_path, control_mode, skill_id_prefix):
 
     return list_of_new_skill_id
 
+def cook_array_from_object_using_postfixs(list_of_postfix, obj):
+    ret = []
+    for postfix in list_of_postfix:
+        exec_str = "obj"+postfix
+        try:
+            val = eval(exec_str)
+        except AttributeError as e:
+            logger.error("obj \"%s\" cannot be accessed by postfix\"%s\""%(obj, postfix))    
+            continue
+        ret.append(val)
+
+    return ret
+
 def execute_skill(skill_id):
     skill_data = extract_skill(skill_id) 
     if skill_data is None:
-        logging.error("skill not found")    
+        logger.error("skill not found")    
         return False
     fill_in_runtime_param(skill_data)
+
+    control_mode = skill_data["control_mode"]
+    control_dimensions = skill_data["control_dimensions"]
+    prog = re.compile(ur".*%s(.*)"%(control_mode,))
+
+    list_of_postfix = []
+    for i in control_dimensions:
+        m = prog.match(i)
+        if not m:
+            logger.error("control dimension \"%s\" cannot be handled by control mode \"%s\""%(i, control_mode))    
+            return False
+        list_of_postfix.append(m.group(1))
+
+    raw_start = skill_data["skill_param"]["start"]
+    raw_end = skill_data["skill_param"]["end"]
+
+    start = cook_array_from_object_using_postfixs(list_of_postfix, raw_start)
+    end = cook_array_from_object_using_postfixs(list_of_postfix, raw_end)
+
     return True
+
+

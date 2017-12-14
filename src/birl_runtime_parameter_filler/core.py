@@ -6,14 +6,16 @@ from geometry_msgs.msg import (
     Pose,
     Quaternion,
 )
+import sys
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("birl_motion_library."+__name__)
+logger.setLevel(logging.INFO)
 
 def param_fetcher(param_name):
     m = re.match(r"robot.*((left|right)).*gripper.*pose", param_name)
     if m:
         direction = m.group(1)
-        logging.info("fetching robot %s gripper pose"%(direction,)) 
+        logger.info("fetching robot %s gripper pose"%(direction,)) 
         topic_name = "/robot/limb/%s/endpoint_state"%(direction,)
         topic_type = EndpointState
         endpoint_state_msg = get_topic_message_once(topic_name, topic_type)
@@ -21,7 +23,7 @@ def param_fetcher(param_name):
 
     m = re.match(r"object_picking_pose", param_name)
     if m:
-        logging.info("fetching object_picking_pose") 
+        logger.info("fetching object_picking_pose") 
 
         pick_object_pose = Pose()
         pick_object_pose.position.x = 0.76301988477
@@ -44,15 +46,15 @@ def recursive_filler(data_dict):
     for key in data_dict:
         value = data_dict[key]
         if type(value) == dict:
-            logging.info("delve into \"%s\""%(key,)) 
+            logger.info("delve into \"%s\""%(key,)) 
             recursive_filler(data_dict[key])
             continue
         elif type(value) == str:
             m = prog.match(value)
             if m:
                 param_name = m.group(1)
-                logging.info("gonna fill runtime value for key \"%s\" whose param name is \"%s\""%(key, param_name)) 
+                logger.info("gonna fill runtime value for key \"%s\" whose param name is \"%s\""%(key, param_name)) 
                 param = param_fetcher(param_name)
                 data_dict[key] = param 
             else:
-                logging.info("skip \"%s\""%(key,)) 
+                logger.info("skip \"%s\""%(key,)) 

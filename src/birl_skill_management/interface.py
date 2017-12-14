@@ -1,8 +1,6 @@
 from core import PickleSkillManager, SkillNotFound
 import logging
 
-logging.basicConfig(level=logging.INFO)
-
 def store_skill(data_id, data):
     psm = PickleSkillManager()
     psm.store(data_id, data)

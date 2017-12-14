@@ -1,8 +1,10 @@
 import os
 import logging
 import pickle
+import sys
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("birl_motion_library."+__name__)
+logger.setLevel(logging.INFO)
 
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 SKILL_DATA_DIR =  os.path.join(PACKAGE_ROOT, "skill_data_dir")
@@ -19,7 +21,7 @@ class PickleSkillManager(object):
 
     def store(self, data_id, data):
         pkl_path = os.path.join(PICKLE_DATA_DIR, str(data_id)+".pkl")
-        logging.info("gonna store data with id \"%s\" into a pickle file \"%s\".", data_id, pkl_path)  
+        logger.info("gonna store data with id \"%s\" into a pickle file \"%s\".", data_id, pkl_path)  
 
         output_file = open(pkl_path, 'wb')
         pickle.dump(data, output_file) 
@@ -27,9 +29,9 @@ class PickleSkillManager(object):
     def extract(self, data_id):
         pkl_path = os.path.join(PICKLE_DATA_DIR, str(data_id)+".pkl")
         if not os.path.isfile(pkl_path):
-            logging.error("data with id \"%s\" not found since pickle file \"%s\" doesn't exist.", data_id, pkl_path)  
+            logger.error("data with id \"%s\" not found since pickle file \"%s\" doesn't exist.", data_id, pkl_path)  
             raise SkillNotFound()
-        logging.info("gonna extract data with id \"%s\" from pickle file \"%s\".", data_id, pkl_path)  
+        logger.info("gonna extract data with id \"%s\" from pickle file \"%s\".", data_id, pkl_path)  
         input_file = open(pkl_path, 'rb')
         data = pickle.load(input_file)
         return data

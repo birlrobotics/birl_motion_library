@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-import logging
 import birl_skill_management.dmp_management
-
-logging.basicConfig(level=logging.INFO)
 
 if __name__ == "__main__":
     options = build_skill_util.parse_arg()
