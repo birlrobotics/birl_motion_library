@@ -4,7 +4,7 @@ from birl_baxter_dmp.dmp_generalize import dmp_imitate
 import re
 import logging
 import pandas as pd
-from birl_skill_management.interface import store_skill, extract_skill
+from birl_skill_management.core import store_skill, extract_skill
 from skill_building_util import get_list_of_interested_column_name
 from birl_runtime_parameter_filler.interface import fill_in_runtime_param
 import sys

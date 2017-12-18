@@ -1,20 +1,9 @@
-from core import PickleSkillManager, SkillNotFound
+from birl_skill_management.core import PickleSkillManager, SkillNotFound
+from birl_skill_management.core import store_skill, extract_skill
 import logging
 logger = logging.getLogger("birl_motion_library."+__name__)
 logger.setLevel(logging.INFO)
 
-def store_skill(data_id, data):
-    psm = PickleSkillManager()
-    psm.store(data_id, data)
-
-def extract_skill(data_id):
-    psm = PickleSkillManager()
-    try:
-        data = psm.extract(data_id)
-    except SkillNotFound as e:
-        return None
-    else:
-        return data
 
 def build_skill(dataset_path, control_mode, skill_id_prefix, skill_model='dmp'):
     if skill_model == 'dmp':
