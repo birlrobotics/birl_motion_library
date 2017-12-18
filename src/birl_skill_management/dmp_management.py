@@ -78,11 +78,7 @@ def cook_array_from_object_using_postfixs(list_of_postfix, obj):
 
     return ret
 
-def execute_skill(skill_id):
-    skill_data = extract_skill(skill_id) 
-    if skill_data is None:
-        logger.error("skill not found")    
-        return False
+def execute_skill(skill_data):
     fill_in_runtime_param(skill_data)
 
     control_mode = skill_data["control_mode"]
@@ -94,7 +90,7 @@ def execute_skill(skill_id):
         m = prog.match(i)
         if not m:
             logger.error("control dimension \"%s\" cannot be handled by control mode \"%s\""%(i, control_mode))    
-            return False
+            raise Exception("control dimension \"%s\" cannot be handled by control mode \"%s\""%(i, control_mode))    
         list_of_postfix.append(m.group(1))
 
     raw_start = skill_data["skill_param"]["start"]
@@ -110,6 +106,5 @@ def execute_skill(skill_id):
 
     logger.info("gen matrix: %s"%(gen_matrix,))
 
-    return True
 
 
