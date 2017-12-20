@@ -4,10 +4,9 @@ from birl_baxter_dmp.dmp_generalize import dmp_imitate
 import re
 import logging
 import pandas as pd
-from birl_skill_management.core import store_skill, extract_skill
-from skill_building_util import get_list_of_interested_column_name
 from birl_runtime_parameter_filler.interface import fill_in_runtime_param
 import sys
+from birl_skill_management.util import get_moveit_plan, get_eval_postfix, get_list_of_interested_column_name
 
 logger = logging.getLogger("birl_motion_library."+__name__)
 logger.setLevel(logging.INFO)
@@ -41,7 +40,7 @@ def build_skill(dataset_path, control_mode, skill_id_prefix):
         traj_group_by_label[label].append(df[list_of_interested_column_name].values)
 
 
-    list_of_new_skill_id = []
+    list_of_new_skill_data = []
     for label, list_of_traj_mat in traj_group_by_label.iteritems():
         basis_weight, basis_function_type = train(list_of_traj_mat)
 
@@ -56,21 +55,20 @@ def build_skill(dataset_path, control_mode, skill_id_prefix):
             "id": "%s_label_%s"%(skill_id_prefix, label),
             "model_type": "dmp",
             "skill_param": skill_param,
-            "control_mode": "pose",
+            "control_mode": control_mode,
             "control_dimensions": list_of_interested_column_name 
         }
 
-        store_skill(skill_data['id'], skill_data) 
-        list_of_new_skill_id.append(skill_data['id'])
+        list_of_new_skill_data.append(skill_data)
 
-    return list_of_new_skill_id
+    return list_of_new_skill_data
 
 def cook_array_from_object_using_postfixs(list_of_postfix, obj):
     ret = []
     for postfix in list_of_postfix:
-        exec_str = "obj"+postfix
+        eval_str = "obj"+postfix
         try:
-            val = eval(exec_str)
+            val = eval(eval_str)
         except AttributeError as e:
             logger.error("obj \"%s\" cannot be accessed by postfix\"%s\""%(obj, postfix))    
             continue
@@ -83,15 +81,8 @@ def execute_skill(skill_data):
 
     control_mode = skill_data["control_mode"]
     control_dimensions = skill_data["control_dimensions"]
-    prog = re.compile(ur".*%s(.*)"%(control_mode,))
 
-    list_of_postfix = []
-    for i in control_dimensions:
-        m = prog.match(i)
-        if not m:
-            logger.error("control dimension \"%s\" cannot be handled by control mode \"%s\""%(i, control_mode))    
-            raise Exception("control dimension \"%s\" cannot be handled by control mode \"%s\""%(i, control_mode))    
-        list_of_postfix.append(m.group(1))
+    list_of_postfix = get_eval_postfix(control_dimensions, control_mode)
 
     raw_start = skill_data["skill_param"]["start"]
     raw_end = skill_data["skill_param"]["end"]
@@ -102,9 +93,10 @@ def execute_skill(skill_data):
     logger.info("start: %s"%(start,))
     logger.info("end: %s"%(end,))
 
-    gen_matrix = dmp_imitate(starting_pose=start, ending_pose=end, weight_mat=skill_data["skill_param"]["basis_weight"])
+    command_matrix = dmp_imitate(starting_pose=start, ending_pose=end, weight_mat=skill_data["skill_param"]["basis_weight"])
 
-    logger.info("gen matrix: %s"%(gen_matrix,))
+    logger.info("command_matrix: %s"%(command_matrix,))
+    return command_matrix
 
 
 

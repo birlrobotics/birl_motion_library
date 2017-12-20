@@ -10,11 +10,6 @@ def topic_cb(data):
 
 def get_topic_message_once(topic_name, topic_type):
     global received_msg, receive_evt
-
-    try:
-        rospy.init_node("runtime_parameter_filler", anonymous=True)
-    except rospy.exceptions.ROSException as e:
-        pass
     
     receive_evt.clear()
     sub = rospy.Subscriber(topic_name, topic_type, topic_cb)
