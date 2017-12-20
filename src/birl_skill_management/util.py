@@ -59,24 +59,37 @@ def send_traj_point_marker(marker_pub, pose, id, rgba_tuple):
     marker.lifetime = rospy.Duration()
     marker_pub.publish(marker)  
 
-    
-def get_moveit_plan(command_matrix, control_dimensions, control_mode):
-
-    marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=100)
-    
+plot_count = 0
+def plot_cmd_matrix(command_matrix, control_dimensions, control_mode):
+    import random
+    global plot_count
     list_of_postfix = get_eval_postfix(control_dimensions, control_mode)
 
+    marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=100)
+    rgba_tuple = [random.uniform(0, 1), random.uniform(0, 1), random.uniform(0.5, 1), 0]
+    for row_no in range(command_matrix.shape[0]):
+        pose = Pose() 
+        for col_no in range(command_matrix.shape[1]):
+            exec_str = 'pose'+list_of_postfix[col_no]+'=command_matrix[row_no, col_no]'
+            exec(exec_str)
+        #alpha = float(row_no)/command_matrix.shape[0]*0.5+0.5 
+        alpha = 1
+        rgba_tuple[3] = alpha
+        send_traj_point_marker(marker_pub=marker_pub, pose=pose, id=plot_count, rgba_tuple=rgba_tuple)
+        rospy.sleep(0.01)
+        plot_count += 1
+
+    
+def get_moveit_plan(command_matrix, control_dimensions, control_mode):
+    plot_cmd_matrix(command_matrix, control_dimensions, control_mode)
+    
+    list_of_postfix = get_eval_postfix(control_dimensions, control_mode)
     list_of_poses = []
     for row_no in range(command_matrix.shape[0]):
         pose = Pose() 
         for col_no in range(command_matrix.shape[1]):
             exec_str = 'pose'+list_of_postfix[col_no]+'=command_matrix[row_no, col_no]'
             exec(exec_str)
-        logger.info("should pub")
-        alpha = float(row_no)/command_matrix.shape[0]*0.5+0.5 
-        rgba_tuple = (0, 0.5, 0.5, alpha)
-        send_traj_point_marker(marker_pub=marker_pub, pose=pose, id=row_no, rgba_tuple=rgba_tuple)
-        rospy.sleep(0.1)
         list_of_poses.append(pose)
 
     moveit_commander.roscpp_initialize(sys.argv)
