@@ -9,6 +9,7 @@ from geometry_msgs.msg import (
 from visualization_msgs.msg import (
     Marker
 )
+import ipdb
 
 logger = logging.getLogger("birl_motion_library."+__name__)
 logger.setLevel(logging.INFO)
@@ -76,7 +77,7 @@ def plot_cmd_matrix(command_matrix, control_dimensions, control_mode):
         alpha = 1
         rgba_tuple[3] = alpha
         send_traj_point_marker(marker_pub=marker_pub, pose=pose, id=plot_count, rgba_tuple=rgba_tuple)
-        rospy.sleep(0.01)
+        rospy.sleep(0.001)
         plot_count += 1
 
     
@@ -92,7 +93,6 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
             exec(exec_str)
         list_of_poses.append(pose)
 
-    moveit_commander.roscpp_initialize(sys.argv)
 
     robot = moveit_commander.RobotCommander()
     group = moveit_commander.MoveGroupCommander("right_arm")
@@ -103,17 +103,21 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
         queue_size=1000,
     )
 
+    marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=100)
     group.set_max_acceleration_scaling_factor(0.01)
     group.set_max_velocity_scaling_factor(0.01)
+    group.set_start_state_to_current_state()
     (plan, fraction) = group.compute_cartesian_path(
                              list_of_poses,   # waypoints to follow
                              0.01,        # eef_step
                              0.0)         # jump_threshold
-
-    display_trajectory = moveit_msgs.msg.DisplayTrajectory()
-    display_trajectory.trajectory_start = robot.get_current_state()
-    display_trajectory.trajectory.append(plan)
     rospy.loginfo("============ Visulaize plan")
-    display_trajectory_publisher.publish(display_trajectory)
-
-    raw_input()
+    while not rospy.is_shutdown():
+        display_trajectory = moveit_msgs.msg.DisplayTrajectory()
+        display_trajectory.trajectory_start = robot.get_current_state()
+        display_trajectory.trajectory.append(plan)
+        display_trajectory_publisher.publish(display_trajectory)
+        send_traj_point_marker(marker_pub=marker_pub, pose=list_of_poses[0], id=999998, rgba_tuple=(0,1,0,1))
+        send_traj_point_marker(marker_pub=marker_pub, pose=list_of_poses[-1], id=999999, rgba_tuple=(1,0,0,1))
+        logger.info("gonna show traj")
+        raw_input()

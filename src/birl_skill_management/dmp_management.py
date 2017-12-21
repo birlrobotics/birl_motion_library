@@ -7,6 +7,8 @@ import pandas as pd
 from birl_runtime_parameter_filler.interface import fill_in_runtime_param
 import sys
 from birl_skill_management.util import get_moveit_plan, get_eval_postfix, get_list_of_interested_column_name
+import ipdb
+import numpy as np
 
 logger = logging.getLogger("birl_motion_library."+__name__)
 logger.setLevel(logging.INFO)
@@ -42,6 +44,13 @@ def build_skill(dataset_path, control_mode, skill_id_prefix):
 
     list_of_new_skill_data = []
     for label, list_of_traj_mat in traj_group_by_label.iteritems():
+        if label == '0':
+            continue
+
+        from util import plot_cmd_matrix
+        for mat in list_of_traj_mat:
+            plot_cmd_matrix(mat, list_of_interested_column_name, control_mode)
+
         basis_weight, basis_function_type = train(list_of_traj_mat)
 
         skill_param = {
@@ -92,7 +101,6 @@ def execute_skill(skill_data):
 
     logger.info("start: %s"%(start,))
     logger.info("end: %s"%(end,))
-
     command_matrix = dmp_imitate(starting_pose=start, ending_pose=end, weight_mat=skill_data["skill_param"]["basis_weight"])
 
     logger.info("command_matrix: %s"%(command_matrix,))

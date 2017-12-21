@@ -4,6 +4,7 @@ import logging
 from  birl_skill_management.interface import build_skill, execute_skill
 import rospy
 import ipdb
+import moveit_commander
 
 logger = logging.getLogger("birl_motion_library")
 logger.setLevel(logging.INFO)
@@ -20,7 +21,6 @@ def move_to_too_right_pose():
     import moveit_commander
     import moveit_msgs.msg
     import geometry_msgs.msg
-    moveit_commander.roscpp_initialize(sys.argv)
     robot = moveit_commander.RobotCommander()
     group = moveit_commander.MoveGroupCommander("right_arm")
 
@@ -32,9 +32,11 @@ def move_to_too_right_pose():
     group.set_joint_value_target(group_variable_values)
     plan = group.plan()
     group.execute(plan, wait=True)
+    raw_input()
     
 
 if __name__ == "__main__":
+    moveit_commander.roscpp_initialize(sys.argv)
     rospy.init_node("test_dmp_skill_build_and_exec", anonymous=True)
 
     dataset_path = '/home/sklaw/Desktop/experiment/birl/data_for_or_from_HMM/baxter_pick_and_place_data/real_baxter_mini_pnp_v_2/extracted_anomalies_dir/20171204165831.345227/dataset_of_resampled_DTWed_lfd_dir/'
