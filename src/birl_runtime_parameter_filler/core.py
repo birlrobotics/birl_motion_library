@@ -26,14 +26,14 @@ def param_fetcher(param_name):
         logger.info("fetching object_picking_pose") 
 
         pick_object_pose = Pose()
-        pick_object_pose.position.x = 0.76301988477
-        pick_object_pose.position.y = -0.290728116404
-        pick_object_pose.position.z = -0.0195624201388
+        pick_object_pose.position.x = 0.74928596188
+        pick_object_pose.position.y = -0.248838816821
+        pick_object_pose.position.z = -0.0279642309342
         pick_object_pose.orientation = Quaternion(
-            x= -0.0259799924463,
-            y= 0.999465665097,
-            z= 0.00445775211005,
-            w= 0.0193275122869,
+            x= -0.00840934474046,
+            y= 0.999184372723,
+            z= 0.0164415452673,
+            w= 0.0359098580458,
         )
 
         return pick_object_pose
