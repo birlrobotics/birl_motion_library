@@ -27,7 +27,7 @@ def param_fetcher(param_name):
 
         pick_object_pose = Pose()
         pick_object_pose.position.x = 0.74928596188
-        pick_object_pose.position.y = -0.248838816821
+        pick_object_pose.position.y = -0.148838816821
         pick_object_pose.position.z = -0.0279642309342
         pick_object_pose.orientation = Quaternion(
             x= -0.00840934474046,

@@ -60,6 +60,23 @@ def send_traj_point_marker(marker_pub, pose, id, rgba_tuple):
     marker.lifetime = rospy.Duration()
     marker_pub.publish(marker)  
 
+def send_traj_marker(marker_pub, list_of_pose, id, rgba_tuple):
+    marker = Marker()
+    marker.header.frame_id = "/base"
+    marker.header.stamp = rospy.Time.now()
+    marker.ns = "traj_point" 
+    marker.id = id
+    marker.type = Marker.LINE_STRIP
+    marker.action = Marker.ADD
+    marker.points = [i.position for i in list_of_pose]
+    marker.scale.x = 0.003
+    marker.color.r = rgba_tuple[0]
+    marker.color.g = rgba_tuple[1]
+    marker.color.b = rgba_tuple[2]
+    marker.color.a = rgba_tuple[3]
+    marker.lifetime = rospy.Duration()
+    marker_pub.publish(marker)  
+
 plot_count = 0
 def plot_cmd_matrix(command_matrix, control_dimensions, control_mode):
     import random
@@ -67,19 +84,18 @@ def plot_cmd_matrix(command_matrix, control_dimensions, control_mode):
     list_of_postfix = get_eval_postfix(control_dimensions, control_mode)
 
     marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=100)
-    rgba_tuple = [random.uniform(0, 1), random.uniform(0, 1), random.uniform(0.5, 1), 0]
+    rospy.sleep(1)
+    rgba_tuple = [random.uniform(0, 1), random.uniform(0, 1), random.uniform(0.5, 1), 1]
+    list_of_pose = []
     for row_no in range(command_matrix.shape[0]):
         pose = Pose() 
         for col_no in range(command_matrix.shape[1]):
             exec_str = 'pose'+list_of_postfix[col_no]+'=command_matrix[row_no, col_no]'
             exec(exec_str)
-        #alpha = float(row_no)/command_matrix.shape[0]*0.5+0.5 
-        alpha = 1
-        rgba_tuple[3] = alpha
-        send_traj_point_marker(marker_pub=marker_pub, pose=pose, id=plot_count, rgba_tuple=rgba_tuple)
-        rospy.sleep(0.001)
-        plot_count += 1
+        list_of_pose.append(pose)
 
+    send_traj_marker(marker_pub=marker_pub, list_of_pose=list_of_pose, id=plot_count, rgba_tuple=rgba_tuple)
+    plot_count += 1
     
 def get_moveit_plan(command_matrix, control_dimensions, control_mode):
     plot_cmd_matrix(command_matrix, control_dimensions, control_mode)
@@ -103,7 +119,6 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
         queue_size=1000,
     )
 
-    marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=100)
     group.set_max_acceleration_scaling_factor(0.01)
     group.set_max_velocity_scaling_factor(0.01)
     group.set_start_state_to_current_state()
@@ -117,7 +132,5 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
         display_trajectory.trajectory_start = robot.get_current_state()
         display_trajectory.trajectory.append(plan)
         display_trajectory_publisher.publish(display_trajectory)
-        send_traj_point_marker(marker_pub=marker_pub, pose=list_of_poses[0], id=999998, rgba_tuple=(0,1,0,1))
-        send_traj_point_marker(marker_pub=marker_pub, pose=list_of_poses[-1], id=999999, rgba_tuple=(1,0,0,1))
         logger.info("gonna show traj")
         raw_input()

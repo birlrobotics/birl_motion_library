@@ -9,6 +9,7 @@ import sys
 from birl_skill_management.util import get_moveit_plan, get_eval_postfix, get_list_of_interested_column_name
 import ipdb
 import numpy as np
+import rospy
 
 logger = logging.getLogger("birl_motion_library."+__name__)
 logger.setLevel(logging.INFO)
