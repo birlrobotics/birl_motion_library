@@ -104,8 +104,6 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
     )
 
     marker_pub = rospy.Publisher("/visualization_marker", Marker, queue_size=100)
-    group.set_max_acceleration_scaling_factor(0.01)
-    group.set_max_velocity_scaling_factor(0.01)
     group.set_start_state_to_current_state()
     (plan, fraction) = group.compute_cartesian_path(
                              list_of_poses,   # waypoints to follow

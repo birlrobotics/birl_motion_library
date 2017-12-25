@@ -32,14 +32,12 @@ def move_to_too_right_pose():
     group.set_joint_value_target(group_variable_values)
     plan = group.plan()
     group.execute(plan, wait=True)
-    raw_input()
-    
 
 if __name__ == "__main__":
     moveit_commander.roscpp_initialize(sys.argv)
     rospy.init_node("test_dmp_skill_build_and_exec", anonymous=True)
 
-    dataset_path = '/home/sklaw/Desktop/experiment/birl/data_for_or_from_HMM/baxter_pick_and_place_data/real_baxter_mini_pnp_v_2/extracted_anomalies_dir/20171204165831.345227/dataset_of_resampled_DTWed_lfd_dir/'
+    dataset_path = '/media/vmrguser/DATA/Homlx/birl_dataset/real_baxter_mini_pnp_v_2/extracted_anomalies_dir/20171204165831.345227/dataset_of_resampled_DTWed_lfd_dir/'
     control_mode = 'pose'
     list_of_new_skill_id = build_skill(dataset_path, control_mode, "anomaly_recovery_skill", "dmp") 
     logger.info("list_of_new_skill_id: %s"%(list_of_new_skill_id,))
