@@ -32,7 +32,6 @@ def move_to_too_right_pose():
     group.set_joint_value_target(group_variable_values)
     plan = group.plan()
     group.execute(plan, wait=True)
-    
 
 if __name__ == "__main__":
     moveit_commander.roscpp_initialize(sys.argv)

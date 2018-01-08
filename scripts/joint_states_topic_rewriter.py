@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 import rospy
 from sensor_msgs.msg import JointState
 
@@ -13,5 +12,4 @@ def control():
     rospy.init_node('joint_control', anonymous=True)
     rospy.Subscriber('/robot/joint_states', JointState, remap_callback)
     rospy.spin()
-    
 control()
