@@ -113,6 +113,9 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
     robot = moveit_commander.RobotCommander()
     group = moveit_commander.MoveGroupCommander("right_arm")
 
+    group.set_max_velocity_scaling_factor(0.3)
+    group.set_max_acceleration_scaling_factor(0.3)
+
     display_trajectory_publisher = rospy.Publisher(
         '/move_group/display_planned_path',
         moveit_msgs.msg.DisplayTrajectory,
@@ -125,10 +128,10 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
                              0.01,        # eef_step
                              0.0)         # jump_threshold
     rospy.loginfo("============ Visulaize plan")
-    while not rospy.is_shutdown():
-        display_trajectory = moveit_msgs.msg.DisplayTrajectory()
-        display_trajectory.trajectory_start = robot.get_current_state()
-        display_trajectory.trajectory.append(plan)
-        display_trajectory_publisher.publish(display_trajectory)
-        logger.info("gonna show traj")
-        raw_input()
+    display_trajectory = moveit_msgs.msg.DisplayTrajectory()
+    display_trajectory.trajectory_start = robot.get_current_state()
+    display_trajectory.trajectory.append(plan)
+    display_trajectory_publisher.publish(display_trajectory)
+    logger.info("gonna show traj")
+
+    return robot, group, plan, fraction
