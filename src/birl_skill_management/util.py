@@ -10,6 +10,7 @@ from visualization_msgs.msg import (
     Marker
 )
 import ipdb
+import numpy
 
 logger = logging.getLogger("birl_motion_library."+__name__)
 logger.setLevel(logging.INFO)
@@ -47,7 +48,7 @@ def send_traj_point_marker(marker_pub, pose, id, rgba_tuple):
     marker.header.stamp = rospy.Time.now()
     marker.ns = "traj_point" 
     marker.id = id
-    marker.type = Marker.SPHERE
+    marker.type = Marker.ARROW
     marker.action = Marker.ADD
     marker.pose = pose
     marker.scale.x = 0.01
@@ -93,8 +94,9 @@ def plot_cmd_matrix(command_matrix, control_dimensions, control_mode):
             exec_str = 'pose'+list_of_postfix[col_no]+'=command_matrix[row_no, col_no]'
             exec(exec_str)
         list_of_pose.append(pose)
+        send_traj_point_marker(marker_pub=marker_pub, pose=pose, id=row_no, rgba_tuple=rgba_tuple)
 
-    send_traj_marker(marker_pub=marker_pub, list_of_pose=list_of_pose, id=plot_count, rgba_tuple=rgba_tuple)
+    #send_traj_marker(marker_pub=marker_pub, list_of_pose=list_of_pose, id=plot_count, rgba_tuple=rgba_tuple)
     plot_count += 1
 
 def norm_quaternion(command_matrix, control_dimensions):
@@ -106,11 +108,21 @@ def norm_quaternion(command_matrix, control_dimensions):
 
     q = command_matrix[:, ori_column_idx]  
     nq = preprocessing.normalize(q)
-    ipdb.set_trace()
-    command_matrix[:, ori_column_idx] = q
+    command_matrix[:, ori_column_idx] = nq
     return command_matrix
     
 def get_moveit_plan(command_matrix, control_dimensions, control_mode):
+    last = command_matrix[0]
+    new_mat = [last]
+    for i in range(1, command_matrix.shape[0]):
+        if numpy.linalg.norm(command_matrix[i][:3]-last[:3]) <  0.05:
+            pass
+        new_mat.append(command_matrix[i])
+        last = command_matrix[i]
+    new_mat.append(command_matrix[-1])
+
+    command_matrix = numpy.array(new_mat)
+
     command_matrix = norm_quaternion(command_matrix, control_dimensions)
 
     plot_cmd_matrix(command_matrix, control_dimensions, control_mode)
