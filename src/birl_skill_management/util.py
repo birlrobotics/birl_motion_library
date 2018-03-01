@@ -96,8 +96,23 @@ def plot_cmd_matrix(command_matrix, control_dimensions, control_mode):
 
     send_traj_marker(marker_pub=marker_pub, list_of_pose=list_of_pose, id=plot_count, rgba_tuple=rgba_tuple)
     plot_count += 1
+
+def norm_quaternion(command_matrix, control_dimensions):
+    from sklearn import preprocessing
+    ori_column_idx = []
+    for idx, dim in enumerate(control_dimensions):
+        if 'orientation' in dim:
+            ori_column_idx.append(idx)
+
+    q = command_matrix[:, ori_column_idx]  
+    nq = preprocessing.normalize(q)
+    ipdb.set_trace()
+    command_matrix[:, ori_column_idx] = q
+    return command_matrix
     
 def get_moveit_plan(command_matrix, control_dimensions, control_mode):
+    command_matrix = norm_quaternion(command_matrix, control_dimensions)
+
     plot_cmd_matrix(command_matrix, control_dimensions, control_mode)
     
     list_of_postfix = get_eval_postfix(control_dimensions, control_mode)
