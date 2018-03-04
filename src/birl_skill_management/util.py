@@ -51,7 +51,7 @@ def send_traj_point_marker(marker_pub, pose, id, rgba_tuple):
     marker.type = Marker.ARROW
     marker.action = Marker.ADD
     marker.pose = pose
-    marker.scale.x = 0.01
+    marker.scale.x = 0.1
     marker.scale.y = 0.01
     marker.scale.z = 0.01
     marker.color.r = rgba_tuple[0]
@@ -110,20 +110,27 @@ def norm_quaternion(command_matrix, control_dimensions):
     nq = preprocessing.normalize(q)
     command_matrix[:, ori_column_idx] = nq
     return command_matrix
+
+def filter_close_points(_mat):
+    mat = numpy.flip(_mat, axis=0)
+
+    last = mat[0].copy()
+    new_mat = [last.copy()]
+    for i in range(mat.shape[0]):
+        if numpy.linalg.norm(mat[i][:3]-last[:3]) < 0.05:
+            continue
+
+        new_mat.append(mat[i].copy())
+        last = mat[i].copy()
+        
+    return numpy.flip(numpy.matrix(new_mat), axis=0)
     
 def get_moveit_plan(command_matrix, control_dimensions, control_mode):
-    last = command_matrix[0]
-    new_mat = [last]
-    for i in range(1, command_matrix.shape[0]):
-        if numpy.linalg.norm(command_matrix[i][:3]-last[:3]) <  0.05:
-            pass
-        new_mat.append(command_matrix[i])
-        last = command_matrix[i]
-    new_mat.append(command_matrix[-1])
-
-    command_matrix = numpy.array(new_mat)
-
     command_matrix = norm_quaternion(command_matrix, control_dimensions)
+
+    command_matrix[:, 3:] = command_matrix[-1, 3:]
+
+    #command_matrix = filter_close_points(command_matrix)
 
     plot_cmd_matrix(command_matrix, control_dimensions, control_mode)
     
@@ -149,16 +156,27 @@ def get_moveit_plan(command_matrix, control_dimensions, control_mode):
         queue_size=1000,
     )
 
-    group.set_start_state_to_current_state()
-    (plan, fraction) = group.compute_cartesian_path(
-                             list_of_poses,   # waypoints to follow
-                             0.01,        # eef_step
-                             0.0)         # jump_threshold
-    rospy.loginfo("============ Visulaize plan")
-    display_trajectory = moveit_msgs.msg.DisplayTrajectory()
-    display_trajectory.trajectory_start = robot.get_current_state()
-    display_trajectory.trajectory.append(plan)
-    display_trajectory_publisher.publish(display_trajectory)
-    logger.info("gonna show traj")
+    plan = None
+    fraction = None
+    while not rospy.is_shutdown():
+        group.set_start_state_to_current_state()
+        plan, fraction = group.compute_cartesian_path(
+                                 list_of_poses,   # waypoints to follow
+                                 0.1,        # eef_step
+                                 0.0)         # jump_threshold
+
+
+        rospy.loginfo("============ Visulaize plan")
+        display_trajectory = moveit_msgs.msg.DisplayTrajectory()
+        display_trajectory.trajectory_start = robot.get_current_state()
+        display_trajectory.trajectory.append(plan)
+        display_trajectory_publisher.publish(display_trajectory)
+        logger.info("gonna show traj")
+
+        if fraction < 0.99:
+            rospy.loginfo("plan succss rate %s, will try again"%fraction)
+            continue 
+        else:
+            break
 
     return robot, group, plan, fraction
