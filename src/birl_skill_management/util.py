@@ -99,39 +99,7 @@ def plot_cmd_matrix(command_matrix, control_dimensions, control_mode):
     #send_traj_marker(marker_pub=marker_pub, list_of_pose=list_of_pose, id=plot_count, rgba_tuple=rgba_tuple)
     plot_count += 1
 
-def norm_quaternion(command_matrix, control_dimensions):
-    from sklearn import preprocessing
-    ori_column_idx = []
-    for idx, dim in enumerate(control_dimensions):
-        if 'orientation' in dim:
-            ori_column_idx.append(idx)
-
-    q = command_matrix[:, ori_column_idx]  
-    nq = preprocessing.normalize(q)
-    command_matrix[:, ori_column_idx] = nq
-    return command_matrix
-
-def filter_close_points(_mat):
-    mat = numpy.flip(_mat, axis=0)
-
-    last = mat[0].copy()
-    new_mat = [last.copy()]
-    for i in range(mat.shape[0]):
-        if numpy.linalg.norm(mat[i][:3]-last[:3]) < 0.05:
-            continue
-
-        new_mat.append(mat[i].copy())
-        last = mat[i].copy()
-        
-    return numpy.flip(numpy.matrix(new_mat), axis=0)
-    
 def get_moveit_plan(command_matrix, control_dimensions, control_mode):
-    command_matrix = norm_quaternion(command_matrix, control_dimensions)
-
-    command_matrix[:, 3:] = command_matrix[-1, 3:]
-
-    #command_matrix = filter_close_points(command_matrix)
-
     plot_cmd_matrix(command_matrix, control_dimensions, control_mode)
     
     list_of_postfix = get_eval_postfix(control_dimensions, control_mode)
